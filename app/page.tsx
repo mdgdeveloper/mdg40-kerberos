@@ -4,9 +4,11 @@ import HeadTitle from "@/components/main/HeadTitle";
 
 import Image from "next/image";
 
-export default function Home() {
+export default async function Home() {
+  const historyAPIreq = await fetch("http://localhost:3000/api", { cache: 'no-store' })
+  const historyAPI = await historyAPIreq.json()
   return (
-    <main className="pt-20 flex items-center flex-col bg-muted/40">
+    <main className="pt-20 flex items-center flex-col ">
       <section className="w-10/12">
         <div>
           <HeadLine />
@@ -15,7 +17,7 @@ export default function Home() {
       </section>
       <section className="w-10/12 py-10">
         <div>
-          <Content />
+          <Content historyAPI={historyAPI.data} />
         </div>
       </section>
     </main>);

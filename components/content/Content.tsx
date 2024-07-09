@@ -1,9 +1,10 @@
 "use client"
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
-import { useEffect, useState } from "react";
+import { FC, useEffect, useState } from "react";
 import { Slider } from "@/components/ui/slider"
 import { PiCopySimple } from "react-icons/pi";
+import { useToast } from "@/components/ui/use-toast";
 
 import { HistoryType, SecuritySettingType } from "@/types/settings";
 import Setting from "./Setting";
@@ -20,10 +21,13 @@ import { cn } from "@/lib/utils";
 import { RandomGenerator } from "@/lib/generator";
 
 
+type Props = {
+  historyAPI: HistoryType[]
+}
 
 
-
-const Content = () => {
+const Content: FC<Props> = ({ historyAPI }) => {
+  const { toast } = useToast()
   const [security, setSecurity] = useState(false)
   const [securitySettings, setSecuritySettings] = useState({
     uppercase: false,
@@ -33,7 +37,7 @@ const Content = () => {
   })
   const [length, setLength] = useState(20)
   const [result, setResult] = useState("")
-  const [history, setHistory] = useState<HistoryType[]>([])
+  const [history, setHistory] = useState<HistoryType[]>(historyAPI || [])
 
   const checkSecurity = () => {
     setSecurity(!security)
@@ -71,22 +75,45 @@ const Content = () => {
     setSecuritySettings(newSecuritySetting)
   }
 
-  const generatePassword = () => {
+  const generatePassword = async () => {
     const generatedPassowrd = RandomGenerator(length, securitySettings.uppercase, securitySettings.symbols, securitySettings.numbers, securitySettings.fullUpper)
     setResult(generatedPassowrd)
     setHistory([...history, { password: generatedPassowrd, date: generateDate() }])
+
+    try {
+      fetch("/api", {
+        method: "POST",
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password: generatedPassowrd, date: generateDate() })
+      })
+    }
+    catch (e) {
+      console.error(e)
+    }
+
   }
+
   const lengthChange = (value: number) => {
     setLength(value)
   }
 
   const copyToClipBoard = () => {
     navigator.clipboard.writeText(result)
+    toast({
+      title: "Password copied to clipboard",
+      description: result,
+    })
   }
 
   const copyToClipboardHistory = (password: string) => {
     navigator.clipboard.writeText(password
     )
+    toast({
+      title: "Password copied to clipboard",
+      description: password,
+    })
   }
 
 
